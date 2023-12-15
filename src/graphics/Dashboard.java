@@ -1,73 +1,113 @@
 package graphics;
 
+import java.awt.CardLayout;
 import java.awt.Dimension;
-import java.io.File;
-import java.awt.image.BufferedImage;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.imageio.*;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 
-import data.GameDataLookup;
-import data.GameState;
+import io.SaveDriver;
+import main.ProgressTracker;
 
-enum WindowState { EggGallery, LevelSelect }
-
-public class Dashboard extends JFrame {
-	private final Dimension SIZE = new Dimension(1020, 620);
+public class Dashboard {
 	
-	private WindowState screen;
-	private static GameState game;
+	static JFrame frame = new JFrame();
+	static JPanel panel = new JPanel();
+	static CardLayout layout = new CardLayout();
+	static JMenuBar menuBar = new JMenuBar();
 	
-	EggGallery eggGallery;
-	LevelSelect levelSelect;
+	static EggGallery eggGallery = new EggGallery();
+	static LevelSelect levelSelect = new LevelSelect();
 	
-	public static BufferedImage[] smallEggPngs = new BufferedImage[72];
+	static boolean onLevelSelect;
 	
-	public Dashboard(GameState gm) {
-		game = gm;
+	public void initialize() {		
+		frame.setTitle("Billy Hatcher 100% Progress Tracker");
+		frame.pack();
 		
-		// Initialize Panes
-			eggGallery = new EggGallery(this,game);
-			levelSelect = new LevelSelect(this,game);
+		frame.setSize(new Dimension(1020,640));
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLocationRelativeTo(null);
 		
-		// Initialize Data
-			for(int i = 1; i <= GameDataLookup.MAX_EGGS; i++) {
-				try { smallEggPngs[i-1] = ImageIO.read(new File("assets/Egg PNGs/Numbered/"+i+".png")); } 
-				catch(Exception e) { System.out.println("Failed to load numbered egg pngs"); }
+		
+		eggGallery.initialize();
+		levelSelect.initialize();
+		
+		panel.setLayout(layout);
+		panel.add(eggGallery.getPanel(), "Egg Gallery");
+		panel.add(levelSelect.getPanel(), "Level Select");
+		
+		layout.show(panel, "Level Select");
+		onLevelSelect = true;
+		
+		frame.add(panel);
+		
+		menuBar = new JMenuBar();
+		JMenu menu = new JMenu("File");
+		JMenuItem menuItem = new JMenuItem("Load Gamestate");
+		menuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent e) {
+				SaveDriver.loadGameState();
 			}
-						
-		// Initialize Frame
-			setTitle("Billy Hatcher 100% Progress Tracker");
-			pack();
-			add(eggGallery);
-			add(levelSelect);
-			setSize(SIZE);
-			setResizable(false);
-			setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			setLocationRelativeTo(null);
-			setVisible(true);
-	}
-	
-	public void update() {
-		getContentPane().repaint();
-		//if(screen == WindowState.EggGallery) 		{ eggGallery.revalidate(); eggGallery.repaint();  }
-		//else if(screen == WindowState.LevelSelect)  { levelSelect.revalidate(); levelSelect.repaint(); }
-	}
-	
-	public int getWidth()  { return SIZE.width;  }
-	public int getHeight() { return SIZE.height; }
-	
-	public void setScreen(WindowState state) { 
-		screen = state; 
-	
-		if(screen == WindowState.EggGallery) {
-			levelSelect.setVisible(false);
-			eggGallery.setVisible(true);
-		}
-		else if(screen == WindowState.LevelSelect) {
-			eggGallery.setVisible(false);
-			levelSelect.setVisible(true);
-		}
+		});
+		menu.add(menuItem);
+		menuItem = new JMenuItem("Save Gamestate");
+		menuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent e) {
+				SaveDriver.saveGameState(ProgressTracker.gamestate);
+			}
+		});
+		menu.add(menuItem);
+		menuBar.add(menu);
+
+		menu = new JMenu("View");
+		menuItem = new JMenuItem("Toggle Dark Mode");
+		menuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent e) {
+				GraphicsDriver.darkMode = !GraphicsDriver.darkMode;
+				GraphicsDriver.update();
+			}
+		});
+		menu.add(menuItem);
+		menuItem = new JMenuItem("Toggle Warnings");
+		menuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent e) {
+				GraphicsDriver.warningsEnabled = !GraphicsDriver.warningsEnabled;
+				GraphicsDriver.update();
+			}
+		});
+		menu.add(menuItem);
+		menuItem = new JMenuItem("Toggle Small Maps");
+		menuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(final ActionEvent e) {
+				GraphicsDriver.largeMaps = !GraphicsDriver.largeMaps;
+				GraphicsDriver.update();
+			}
+		});
+		menu.add(menuItem);
+		menuBar.add(menu);
+		frame.setJMenuBar(menuBar);
 		
+		frame.setIconImage(new ImageIcon("assets/Egg PNGs/High Quality/65-superrecky.png", "Super Recky").getImage());
+		
+		frame.setVisible(true);
+	}
+	
+	public static void update() {
+		if(onLevelSelect) {levelSelect.update();}
+		else {eggGallery.update();}
+	}
+	
+	public static void switchPane() {
+		layout.next(panel);
+		onLevelSelect = !onLevelSelect;
 		update();
 	}
 }

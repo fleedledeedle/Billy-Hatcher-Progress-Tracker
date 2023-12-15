@@ -1,74 +1,145 @@
 package graphics;
 
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.LayoutManager;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 
 import data.GameDataLookup;
-import data.GameState;
+import data.Rank;
+import main.ProgressTracker;
+import util.Utils;
 
-public class SummaryPanel extends JFrame{
-	private final Dimension SIZE = new Dimension(510, 310);
+public class SummaryPanel {
+	JFrame frame = new JFrame();
+	JPanel panel = new JPanel();
 	
-	GameState game;
+	JLabel emblemIcon = new JLabel();
+	JLabel emblemCount = new JLabel();
 	
-	SummaryPane pane;
+	JLabel levelCount = new JLabel();
+	JProgressBar levelProgress = new JProgressBar(0, GameDataLookup.MAX_LEVELS);
+	JLabel levelEmblem = new JLabel();
 	
-	public SummaryPanel(GameState gamestate) {
-		game = gamestate;
-		pane = new SummaryPane(this, gamestate);
-		
-		setUndecorated(true);
-		setTitle("CHOOSE THIS WINDOW FOR CAPTURE");
-		add(pane);
-		pack();
-		setSize(SIZE);
-		setResizable(false);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setVisible(true);
-		
+	JLabel coinCount = new JLabel();
+	JProgressBar coinProgress = new JProgressBar(0, GameDataLookup.MAX_CHICK_COINS);
+	JLabel coinEmblem = new JLabel();
+	
+	JLabel eggCount = new JLabel();
+	JProgressBar eggProgress = new JProgressBar(0, GameDataLookup.MAX_EGGS);
+	JLabel eggEmblem = new JLabel();
+	
+	JLabel sRankCount = new JLabel();
+	JProgressBar sRankProgress = new JProgressBar(0, GameDataLookup.MAX_SRANKS);
+	JLabel sRankEmblem = new JLabel();
+	
+	JLabel eggMasterText = new JLabel();
+	
+	public void initialize() {
+		initializeFrame();
+		initializeComponents();
+		frame.setVisible(true);
 	}
 	
-	public void update() { pane.repaint(); }
+	private void initializeFrame() {
+		frame.setUndecorated(true);
+		frame.setTitle("CHOOSE THIS WINDOW FOR CAPTURE");
+		panel.setLayout(null);
+		frame.add(panel);
+		frame.pack();
+		frame.setSize(new Dimension(510,310));
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
 	
-	public int getWidth() { return SIZE.width; }
-	public int getHeight() { return SIZE.height; }
-}
-class SummaryPane extends JPanel {
+	private void initializeComponents() {		
+		update();
+
+		levelCount.setLocation(10, 10);
+		levelCount.setSize(100,16);
+		levelProgress.setLocation(120,10);
+		levelProgress.setSize(360,16);
+		levelEmblem.setLocation(485,10);
+		levelEmblem.setSize(16,16);
+		panel.add(levelCount);
+		panel.add(levelProgress);
+		panel.add(levelEmblem);
+		
+		coinCount.setLocation(10, 30);
+		coinCount.setSize(100,16);
+		coinProgress.setLocation(120,30);
+		coinProgress.setSize(360,16);
+		coinEmblem.setLocation(485,30);
+		coinEmblem.setSize(16,16);
+		panel.add(coinCount);
+		panel.add(coinProgress);
+		panel.add(coinEmblem);
+		
+		eggCount.setLocation(10, 50);
+		eggCount.setSize(100,16);
+		eggProgress.setLocation(120,50);
+		eggProgress.setSize(360,16);
+		eggEmblem.setLocation(485,50);
+		eggEmblem.setSize(16,16);
+		panel.add(eggCount);
+		panel.add(eggProgress);
+		panel.add(eggEmblem);
+		
+		sRankCount.setLocation(10, 70);
+		sRankCount.setSize(100,16);
+		sRankProgress.setLocation(120,70);
+		sRankProgress.setSize(360,16);
+		sRankEmblem.setLocation(485,70);
+		sRankEmblem.setSize(16,16);
+		panel.add(sRankCount);
+		panel.add(sRankProgress);
+		panel.add(sRankEmblem);
+		
+		emblemCount.setLocation(10,90);
+		emblemCount.setSize(150,16);
+		panel.add(emblemCount);
+		emblemIcon.setLocation(180, 90);
+		emblemIcon.setSize(16,16);
+		panel.add(emblemIcon);
+		
+		eggMasterText.setLocation(30, 110);
+		eggMasterText.setSize(300,64);
+		panel.add(eggMasterText);
+	}
 	
-	SummaryPanel frame;
-	GameState game;
-	
-	public SummaryPane(SummaryPanel parent, GameState gamestate) { frame = parent; game = gamestate; }
-	
-	protected void paintComponent(Graphics g) {		
-		super.paintComponent(g);
+	public void update() {
+		levelCount.setText("Levels: "+ProgressTracker.gamestate.getNumLevelsCompleted()+" / "+GameDataLookup.MAX_LEVELS);
+		levelProgress.setValue(ProgressTracker.gamestate.getNumLevelsCompleted());
+		if(ProgressTracker.gamestate.getNumLevelsCompleted() == GameDataLookup.MAX_LEVELS) {
+			levelEmblem.setIcon(Utils.scaleIcon(GraphicsDriver.emblem,16,16));
+		}else { levelEmblem.setIcon(null); }	
 		
-		// Game/Graphics States not loaded yet? FIXME
-		int[] data = game.getSummaryData(); 
+		coinCount.setText("Coins: "+ProgressTracker.gamestate.getNumChickCoins()+" / "+GameDataLookup.MAX_CHICK_COINS);
+		coinProgress.setValue(ProgressTracker.gamestate.getNumChickCoins());
+		if(ProgressTracker.gamestate.getNumChickCoins() == GameDataLookup.MAX_CHICK_COINS) {
+			coinEmblem.setIcon(Utils.scaleIcon(GraphicsDriver.emblem,16,16));
+		}else { coinEmblem.setIcon(null); }	
 		
+		eggCount.setText("Eggs: "+ProgressTracker.gamestate.getNumEggsHatched()+" / "+GameDataLookup.MAX_EGGS);
+		eggProgress.setValue(ProgressTracker.gamestate.getNumEggsHatched());
+		if(ProgressTracker.gamestate.getNumEggsHatched() == GameDataLookup.MAX_EGGS) {
+			eggEmblem.setIcon(Utils.scaleIcon(GraphicsDriver.emblem,16,16));
+		}else { eggEmblem.setIcon(null); }	
 		
-		g.clearRect(0, 0, frame.getWidth(), frame.getHeight());
+		sRankCount.setText("S Ranks: "+ProgressTracker.gamestate.getNumSRanks()+" / "+GameDataLookup.MAX_SRANKS);
+		sRankProgress.setValue(ProgressTracker.gamestate.getNumSRanks());
+		if(ProgressTracker.gamestate.getNumSRanks() == GameDataLookup.MAX_SRANKS) {
+			sRankEmblem.setIcon(Utils.scaleIcon(GraphicsDriver.emblem,16,16));
+		}else { sRankEmblem.setIcon(null); }
 		
-		g.setFont(GraphicsDriver.regular);
-		
-		//Background
-			g.setColor(new Color(186, 142, 74));
-			g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
-		
-		//Text
-			g.setColor(Color.BLACK);
-			
-			int initialY = 30;
-			int verticalSpacer = 30;
-			
-			g.drawString("Emblems: "+data[0]+" / "+GameDataLookup.MAX_EMBLEMS, 30, initialY);
-			g.drawString("Levels: "+data[1]+" / "+GameDataLookup.MAX_LEVELS, 30, initialY+verticalSpacer);
-			g.drawString("Coins: "+data[2]+" / "+GameDataLookup.MAX_CHICK_COINS, 30, initialY+(2*verticalSpacer));
-			g.drawString("Eggs: "+data[3]+" / "+GameDataLookup.MAX_EGGS, 30, initialY+(3*verticalSpacer));
-			g.drawString("S Ranks: "+data[4]+" / "+GameDataLookup.MAX_SRANKS, 30, initialY+(4*verticalSpacer));
-	}	
+		emblemIcon.setIcon(Utils.scaleIcon(GraphicsDriver.emblem,16,16));
+		emblemCount.setText("Emblem Count: "+ProgressTracker.gamestate.getNumCourageEmblems()+" / "+GameDataLookup.MAX_EMBLEMS);
+		if(ProgressTracker.gamestate.getNumCourageEmblems() == GameDataLookup.MAX_EMBLEMS) {
+			eggMasterText.setText("Egg Master");
+		}else { eggMasterText.setText(""); }
+	}
 }
